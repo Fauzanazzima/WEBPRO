@@ -1,12 +1,13 @@
 <?php
-include "config.php";
+include "config.php"; // Koneksi ke database
 
 if (isset($_POST['btnRegister'])) {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = $_POST['password'];
+    $role = $_POST['role']; // Mengambil nilai role (parents atau children)
 
-    // Validasi apakah username sudah ada
+    // Validasi apakah username atau email sudah ada
     $sql_check = "SELECT * FROM users WHERE username = '$username' OR email = '$email'";
     $result_check = mysqli_query($conn, $sql_check);
 
@@ -14,7 +15,9 @@ if (isset($_POST['btnRegister'])) {
         $errMsg = "Username atau email sudah digunakan!";
     } else {
         // Insert ke database tanpa hashing password
-        $sql_insert = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+        $sql_insert = "INSERT INTO users (username, email, password, role) 
+                       VALUES ('$username', '$email', '$password', '$role')";
+
         if (mysqli_query($conn, $sql_insert)) {
             header("Location: login.php"); // Redirect ke login page setelah registrasi berhasil
             exit;
@@ -24,14 +27,17 @@ if (isset($_POST['btnRegister'])) {
     }
 }
 ?>
+
 <?php
-include "../Templet/mainheader.php";
+include "template/mainheader.php";
 ?>
+
 <div class="row mt-3 mb-4">
     <div class="col-md-6">
         <h4>Registrasi</h4>
     </div>
 </div>
+
 <form action="register.php" method="POST">
     <div class="mb-1 row">
         <div class="col-2">
@@ -60,6 +66,19 @@ include "../Templet/mainheader.php";
         </div>
     </div>
 
+    <!-- Menambahkan pilihan role (Parents atau Children) -->
+    <div class="mb-1 row">
+        <div class="col-2">
+            <label for="role" class="col-form-label">Role</label>
+        </div>
+        <div class="col-auto">
+            <select class="form-control" id="role" name="role" required>
+                <option value="parents">Parents</option>
+                <option value="children">Children</option>
+            </select>
+        </div>
+    </div>
+
     <div class="mb-1 row">
         <div class="col-auto">
             <input type="submit" class="btn btn-success" id="btnRegister" name="btnRegister" value="Daftar">
@@ -75,5 +94,7 @@ include "../Templet/mainheader.php";
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybFf4j5p1h7z3Qd9Od9q8jzToQsmDfm/5N5vXjxz9ffdk7wA8" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0u6fES3NOy0Yl5lHZ5N18zqJk2T4hfcF6l+aDZTLuMXddZjM" crossorigin="anonymous"></script>
-</body>
-</html>
+
+<?php
+include "template/mainfooter.php";
+?>
