@@ -2,7 +2,7 @@
 session_start();  // Pastikan session dimulai di awal file
 
 include "config.php";
-include "../Templet/mainheader.php";
+include "template/mainheader.php";
 
 // Pastikan koneksi ke database sudah berhasil
 if (!$conn) {
@@ -78,3 +78,7 @@ if (isset($_GET['msg'])) {
 <div class="mt-3">
     <p>Belum memiliki akun? <a href="register.php">Daftar di sini</a></p>
 </div>
+
+<?php
+include "template/mainfooter.php";
+?>
