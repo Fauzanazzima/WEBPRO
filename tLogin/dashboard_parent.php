@@ -1,10 +1,4 @@
 <?php
-session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'parents') {
-    header("Location: login.php");  // Jika bukan orang tua, arahkan ke halaman login
-    exit;
-}
-
 include "template/mainheader.php";
 ?>
 
