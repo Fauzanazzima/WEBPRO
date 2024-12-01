@@ -29,9 +29,14 @@ if (isset($_POST['btnLogin'])) {
             // Menyimpan informasi pengguna ke session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];  // Menyimpan username
+            $_SESSION['role'] = $user['role'];  // Menyimpan role (parent atau child)
 
-            // Redireksi ke halaman utama
-            header("Location: index.php");
+            // Redirect ke halaman dashboard sesuai dengan role
+            if ($user['role'] === 'parent') {
+                header("Location: dashboard_parent.php");  // Dashboard untuk parent
+            } else {
+                header("Location: dashboard_child.php");  // Dashboard untuk child
+            }
             exit;
         } else {
             $errMsg = "Password salah!";
@@ -44,6 +49,7 @@ if (isset($_POST['btnLogin'])) {
 }
 ?>
 
+<!-- Form Login -->
 <form method="post" action="login.php">
     <div class="mb-1 row">
         <div class="col-2">
@@ -82,3 +88,4 @@ if (isset($_GET['msg'])) {
 <?php
 include "template/mainfooter.php";
 ?>
+
