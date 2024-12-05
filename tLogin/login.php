@@ -32,8 +32,8 @@ if (isset($_POST['btnLogin'])) {
             $_SESSION['role'] = $user['role'];  // Menyimpan role (parent atau child)
 
             // Redirect ke halaman dashboard sesuai dengan role
-            if ($user['role'] === 'parent') {
-                header("Location: dashboard_parent.php");  // Dashboard untuk parent
+            if ($user['role'] === 'parents') {
+                header("Location: dashboard_parents.php");  // Dashboard untuk parent
             } else {
                 header("Location: dashboard_child.php");  // Dashboard untuk child
             }
@@ -50,29 +50,31 @@ if (isset($_POST['btnLogin'])) {
 ?>
 
 <!-- Form Login -->
-<form method="post" action="login.php">
-    <div class="mb-1 row">
-        <div class="col-2">
-            <label for="username" class="col-form-label">Username</label>
+<div style="margin-left: 50px;"> 
+    <form method="post" action="login.php">
+        <div class="mb-1 row">
+            <div class="col-2">
+                <label for="username" class="col-form-label">Username</label>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" id="username" name="username" size="20" placeholder="Username" required>
+            </div>
         </div>
-        <div class="col-auto">
-            <input type="text" class="form-control" id="username" name="username" size="20" placeholder="Username" required>
+        <div class="mb-1 row">
+            <div class="col-2">
+                <label for="password" class="col-form-label">Password</label>
+            </div>
+            <div class="col-auto">
+                <input type="password" class="form-control" id="password" name="password" size="20" placeholder="Password" required>
+            </div>
         </div>
-    </div>
-    <div class="mb-1 row">
-        <div class="col-2">
-            <label for="password" class="col-form-label">Password</label>
+        <div class="mb-1 row">
+            <div class="col-auto">
+                <input type="submit" class="btn btn-success" id="btnSubmit" name="btnLogin" size="20" value="Login">
+            </div>
         </div>
-        <div class="col-auto">
-            <input type="password" class="form-control" id="password" name="password" size="20" placeholder="Password" required>
-        </div>
-    </div>
-    <div class="mb-1 row">
-        <div class="col-auto">
-            <input type="submit" class="btn btn-success" id="btnSubmit" name="btnLogin" size="20" value="Login">
-        </div>
-    </div>
-</form>
+    </form>
+</div>
 
 <!-- Pemberitahuan jika ada pesan dari URL -->
 <?php
@@ -81,7 +83,7 @@ if (isset($_GET['msg'])) {
 }
 ?>
 
-<div class="mt-3">
+<div style="margin-left: 50px;"> 
     <p>Belum memiliki akun? <a href="register.php">Daftar di sini</a></p>
 </div>
 
