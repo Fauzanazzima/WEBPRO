@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root";
 $password = "";
-$dbname = "keuangan";
+$dbname = "financeManager";
 
 // Membuat koneksi ke database
 $conn = mysqli_connect($host, $user, $password, $dbname);
