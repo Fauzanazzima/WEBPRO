@@ -114,3 +114,26 @@ if (isset($_POST['btnRegister'])) {
         </div>
     </form>
 </div>
+
+<!-- Pesan Kesalahan -->
+<?php
+if (isset($errMsg)) {
+    echo '<div class="alert alert-warning mt-3">' . htmlspecialchars($errMsg) . '</div>';
+}
+?>
+
+<div style="margin-left: 50px;">
+    <p>Sudah memiliki akun? <a href="login.php">Login di sini</a></p>
+</div>
+
+<script>
+// Menambahkan event listener untuk menunjukkan atau menyembunyikan input Parent ID jika role berubah
+document.getElementById('role').addEventListener('change', function() {
+    var parentIdRow = document.getElementById('parentIdRow');
+    if (this.value == 'anak') {
+        parentIdRow.style.display = 'block';
+    } else {
+        parentIdRow.style.display = 'none';
+    }
+});
+</script>
