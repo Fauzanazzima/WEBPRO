@@ -1,65 +1,81 @@
 <?php
-session_start();  // Pastikan sesi dimulai di awal file
+session_start();
+include "config.php";  // Koneksi ke database
+include "template/mainheader.php";  // Template header
 
-include "config.php";  // Pastikan koneksi database ada di sini
-include "template/mainheader.php";  // Pastikan header dan template terhubung dengan baik
-
-// Cek apakah form login disubmit
-if (isset($_POST['btnLogin'])) {
-    // Ambil data dari form
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
+// Menangani proses login
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ambil data form
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
+    $role = $_POST['role'];  // Menambahkan role
+    $parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : null; // ID Orang Tua untuk Anak
 
-    // Query untuk mencari pengguna berdasarkan username
-    $sql = "SELECT * FROM users WHERE username = '$username'";
-    $result = mysqli_query($conn, $sql);
-
-    // Jika query gagal
-    if (!$result) {
-        die("Query gagal: " . mysqli_error($conn));
-    }
-
-    // Cek apakah ada pengguna yang ditemukan
-    if (mysqli_num_rows($result) > 0) {
-        // Ambil data pengguna
-        $user = mysqli_fetch_assoc($result);
-
-        // Cek apakah password yang dimasukkan cocok dengan password yang ada di database
-        if (password_verify($password, $user['password'])) {
-            // Jika login sukses, simpan informasi pengguna ke dalam session
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['parent_id'] = $user['parent_id']; // Menyimpan ID orang tua jika ada
-
-            // Arahkan ke halaman dashboard sesuai dengan role
-            if ($user['role'] == 'parents') {
-                header("Location: dashboard_parents.php");  // Dashboard untuk Orang Tua
-            } else {
-                header("Location: dashboard_child.php");  // Dashboard untuk Anak
-            }
-            exit;
-        } else {
-            // Jika password salah
-            $errMsg = "Password salah!";
-        }
+    // Validasi input
+    if (empty($username) || empty($password) || empty($role)) {
+        $error = "Username, Password, dan Role wajib diisi!";
     } else {
-        // Jika username tidak ditemukan
-        $errMsg = "Username tidak ditemukan.";
+        // Jika role adalah anak, validasi Parent ID
+        if ($role === 'child' && empty($parent_id)) {
+            $error = "Parent ID harus diisi untuk anak!";
+        }
+
+        if (empty($error)) {
+            // Cari data user berdasarkan username dan role yang dipilih
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND role = ?");
+            $stmt->execute([$username, $role]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user) {
+                // Verifikasi password
+                if (password_verify($password, $user['password'])) {
+                    // Jika role = child, pastikan Parent ID valid
+                    if ($role === 'child') {
+                        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'parent'");
+                        $stmt->execute([$parent_id]);
+                        if ($stmt->rowCount() == 0) {
+                            $error = "ID Orang Tua tidak valid atau tidak terdaftar!";
+                        } else {
+                            // Set session untuk pengguna yang berhasil login
+                            $_SESSION['user_id'] = $user['id'];
+                            $_SESSION['username'] = $user['username'];
+                            $_SESSION['role'] = $user['role'];
+                            $_SESSION['parent_id'] = $parent_id;  // Menyimpan ID Orang Tua
+
+                            // Redirect ke dashboard anak
+                            header("Location: dashboard_child.php");
+                            exit();
+                        }
+                    } else {
+                        // Jika role = parent, set session dan redirect ke dashboard orang tua
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['role'] = $user['role'];
+
+                        // Redirect ke halaman dashboard orang tua setelah login
+                        header("Location: dashboard_parent.php");
+                        exit();
+                    }
+                } else {
+                    $error = "Username atau password salah!";
+                }
+            } else {
+                $error = "Username tidak ditemukan untuk role '$role'!";
+            }
+        }
     }
 }
-
 ?>
 
-<!-- Form Login -->
-<div style="margin-left: 50px;"> 
+<!-- Halaman Login Form -->
+<div style="margin-left: 50px;">
     <form method="post" action="login.php">
         <div class="mb-1 row">
             <div class="col-2">
                 <label for="username" class="col-form-label">Username</label>
             </div>
             <div class="col-auto">
-                <input type="text" class="form-control" id="username" name="username" size="20" placeholder="Username" required>
+                <input type="text" class="form-control" id="username" name="username" required>
             </div>
         </div>
 
@@ -68,22 +84,45 @@ if (isset($_POST['btnLogin'])) {
                 <label for="password" class="col-form-label">Password</label>
             </div>
             <div class="col-auto">
-                <input type="password" class="form-control" id="password" name="password" size="20" placeholder="Password" required>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+        </div>
+
+        <!-- Pilihan Role (Parent / Child) -->
+        <div class="mb-1 row">
+            <div class="col-2">
+                <label for="role" class="col-form-label">Role</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-control" id="role" name="role" required>
+                    <option value="parent">Orang Tua</option>
+                    <option value="child">Anak</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Input Parent ID hanya untuk Anak -->
+        <div class="mb-1 row" id="parentIdRow" style="display: none;">
+            <div class="col-2">
+                <label for="parent_id" class="col-form-label">ID Orang Tua</label>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" id="parent_id" name="parent_id" placeholder="Masukkan ID Orang Tua">
             </div>
         </div>
 
         <div class="mb-1 row">
             <div class="col-auto">
-                <input type="submit" class="btn btn-success" id="btnSubmit" name="btnLogin" size="20" value="Login">
+                <input type="submit" class="btn btn-success" id="btnSubmit" name="btnLogin" value="Login">
             </div>
         </div>
     </form>
 </div>
 
-<!-- Pemberitahuan jika ada pesan dari URL -->
 <?php
-if (isset($errMsg)) {
-    echo '<div class="alert alert-warning mt-3">' . htmlspecialchars($errMsg) . '</div>';
+// Menampilkan pesan error jika ada
+if (isset($error)) {
+    echo "<div class='alert alert-warning mt-3'>{$error}</div>";
 }
 ?>
 
@@ -91,6 +130,16 @@ if (isset($errMsg)) {
     <p>Belum memiliki akun? <a href="register.php">Daftar di sini</a></p>
 </div>
 
-<?php
-include "template/mainfooter.php";
-?>
+<?php include "template/mainfooter.php"; ?>
+
+<!-- JavaScript untuk menampilkan Parent ID hanya untuk role "child" -->
+<script>
+    document.getElementById('role').addEventListener('change', function() {
+        var parentIdRow = document.getElementById('parentIdRow');
+        if (this.value === 'child') {
+            parentIdRow.style.display = 'block';  // Tampilkan input Parent ID jika Child dipilih
+        } else {
+            parentIdRow.style.display = 'none';  // Sembunyikan input Parent ID jika Parent dipilih
+        }
+    });
+</script>
